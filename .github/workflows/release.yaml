@@ -1,0 +1,42 @@
+# This workflow should generate a new git tag and corresponding GitHub release
+# every time the VERSION file is updated.
+#
+# The version number in the file is used as the release tag.
+name: auto-release
+
+"on":
+  push:
+    branches:
+      - main
+    paths:
+      - "VERSION"
+
+jobs:
+  auto-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: check out
+        uses: actions/checkout@v3
+
+      - name: get version
+        id: get_version
+        run: echo ::set-output name=version::"v$(cat VERSION)"
+
+      - name: create tag
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{ steps.get_version.outputs.version }}",
+              sha: context.sha
+            })
+
+      - name: create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
