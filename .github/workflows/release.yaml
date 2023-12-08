@@ -22,18 +22,13 @@ jobs:
 
       - name: get version
         id: get_version
-        run: echo ::set-output name=version::"v$(cat VERSION)"
+        run: echo "version=v$(cat VERSION)" >> $GITHUB_OUTPUT
 
       - name: create tag
-        uses: actions/github-script@v4
+        uses: rickstaa/action-create-tag@v1
+        id: "tag_create"
         with:
-          script: |
-            github.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: "refs/tags/${{ steps.get_version.outputs.version }}",
-              sha: context.sha
-            })
+          tag: "${{ steps.get_version.outputs.version }}"
 
       - name: create release
         uses: softprops/action-gh-release@v1
